@@ -1,0 +1,6 @@
+question : Which event in Korean history is often referred to as the 'Treaty of Ganghwa'?
+options
+    A: The Gwanggaeto's Military Campaigns
+    B: The Treaty of Ganghwa
+    C: The Imjin War
+correct_answer_label: B
