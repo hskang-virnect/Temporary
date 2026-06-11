@@ -1,0 +1,924 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HSK Code Map</title>
+  <style>
+    :root {
+      --bg: #f7f5ef;
+      --panel: #ffffff;
+      --ink: #1c2430;
+      --muted: #697386;
+      --line: #d9ddd8;
+      --blue: #2f6f9f;
+      --teal: #1f8a70;
+      --amber: #b7791f;
+      --rose: #b84a62;
+      --code: #eef3f1;
+      --shadow: 0 18px 50px rgba(31, 42, 55, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(120deg, rgba(47, 111, 159, 0.10), transparent 34%),
+        linear-gradient(210deg, rgba(31, 138, 112, 0.10), transparent 38%),
+        var(--bg);
+      color: var(--ink);
+      font-family: "Aptos", "Pretendard", "Noto Sans KR", "Segoe UI", sans-serif;
+      line-height: 1.58;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    code {
+      padding: 0.12rem 0.34rem;
+      border-radius: 5px;
+      background: var(--code);
+      font-family: "Cascadia Code", "D2Coding", "Consolas", monospace;
+      font-size: 0.92em;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 24px 18px;
+      border-right: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: grid;
+      gap: 8px;
+      padding: 8px 8px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.45rem, 2vw, 2.05rem);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .search-box {
+      display: grid;
+      gap: 8px;
+      margin: 18px 6px 14px;
+    }
+
+    .search-box label {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .search-box input {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(47, 111, 159, 0.15);
+    }
+
+    .tree-actions {
+      display: flex;
+      gap: 8px;
+      margin: 0 6px 14px;
+    }
+
+    button {
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.86rem;
+    }
+
+    button:hover {
+      border-color: var(--blue);
+    }
+
+    .tree {
+      display: grid;
+      gap: 6px;
+      padding: 0 4px 28px;
+      font-size: 0.94rem;
+    }
+
+    details {
+      border-radius: 7px;
+    }
+
+    summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 32px;
+      padding: 5px 7px;
+      border-radius: 7px;
+      cursor: pointer;
+      list-style: none;
+      font-weight: 700;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-right: 2px solid var(--muted);
+      border-bottom: 2px solid var(--muted);
+      transform: rotate(-45deg);
+      transition: transform 160ms ease;
+      flex: 0 0 auto;
+    }
+
+    details[open] > summary::before {
+      transform: rotate(45deg);
+    }
+
+    summary:hover,
+    .tree a:hover {
+      background: rgba(47, 111, 159, 0.09);
+    }
+
+    .tree a.is-selected {
+      background: rgba(47, 111, 159, 0.15);
+      box-shadow: inset 3px 0 0 var(--blue);
+      font-weight: 800;
+    }
+
+    .tree-group {
+      margin-left: 17px;
+      padding-left: 12px;
+      border-left: 1px solid var(--line);
+    }
+
+    .tree a,
+    .leaf {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      min-height: 30px;
+      padding: 5px 7px;
+      border-radius: 7px;
+      color: var(--ink);
+    }
+
+    .leaf {
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      height: 21px;
+      padding: 0 7px;
+      border-radius: 5px;
+      background: #e7eee8;
+      color: #345045;
+      font-size: 0.72rem;
+      font-weight: 800;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .badge.file { background: #e7eef5; color: #264b68; }
+    .badge.func { background: #f5ead8; color: #72430f; }
+    .badge.class { background: #f4e3e8; color: #7a3244; }
+    .badge.entry { background: #e4f1ee; color: #1f6655; }
+
+    .content {
+      min-width: 0;
+      padding: 34px clamp(20px, 4vw, 56px) 56px;
+    }
+
+    .intro {
+      display: grid;
+      gap: 18px;
+      max-width: 1180px;
+      margin: 0 auto 24px;
+    }
+
+    .intro h2 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4.6rem);
+      line-height: 0.98;
+      letter-spacing: 0;
+      max-width: 900px;
+    }
+
+    .intro p {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .section {
+      max-width: 1180px;
+      margin: 28px auto 0;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .section-title h3 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0;
+    }
+
+    .section-title p {
+      max-width: 560px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .flow-card,
+    .module-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.80);
+      box-shadow: var(--shadow);
+    }
+
+    .flow-card {
+      padding: 18px;
+      overflow: auto;
+    }
+
+    .flow-card svg {
+      display: block;
+      min-width: 860px;
+      width: 100%;
+      height: auto;
+    }
+
+    .flow-node {
+      cursor: pointer;
+      outline: none;
+    }
+
+    .flow-node rect {
+      transition: stroke-width 160ms ease, filter 160ms ease;
+    }
+
+    .flow-node:hover rect,
+    .flow-node:focus rect,
+    .flow-node.is-selected rect {
+      stroke-width: 3;
+    }
+
+    .flow-node.is-selected text:first-of-type {
+      text-decoration: underline;
+    }
+
+    .selection-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 54px;
+      margin-bottom: 14px;
+      padding: 13px 15px;
+      border: 1px dashed #c7cec8;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.64);
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .selection-summary strong {
+      color: var(--ink);
+    }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .module-card {
+      display: none;
+      padding: 18px;
+    }
+
+    .module-card.is-visible {
+      display: block;
+    }
+
+    .module-card header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+
+    .module-card h4 {
+      margin: 0;
+      font-size: 1.08rem;
+      letter-spacing: 0;
+    }
+
+    .module-card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    .talk-track {
+      margin: 0 0 12px;
+      padding: 10px 11px;
+      border-left: 3px solid var(--teal);
+      border-radius: 6px;
+      background: rgba(228, 241, 238, 0.70);
+      color: #27594d;
+      font-size: 0.93rem;
+    }
+
+    .flow-caption {
+      margin: 12px 4px 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .flow-caption strong {
+      color: var(--ink);
+    }
+
+    .function-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .function-list li {
+      display: grid;
+      gap: 3px;
+      padding: 9px 10px;
+      border: 1px solid #e4e7e4;
+      border-radius: 7px;
+      background: rgba(247, 245, 239, 0.58);
+    }
+
+    .function-list b {
+      font-family: "Cascadia Code", "D2Coding", "Consolas", monospace;
+      font-size: 0.92rem;
+    }
+
+    .function-list span {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .note {
+      padding: 14px 16px;
+      border-left: 4px solid var(--amber);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--muted);
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 980px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: relative;
+        height: auto;
+        max-height: none;
+      }
+
+      .module-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .content {
+        padding: 24px 16px 42px;
+      }
+
+      .module-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-title {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .tree-actions {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="코드 구조 트리">
+      <div class="brand">
+        <h1>HSK Code Map</h1>
+        <p>파일, 함수, 실행 흐름을 한 화면에서 보는 코드 리딩 자료</p>
+      </div>
+
+      <div class="search-box">
+        <label for="treeSearch">Tree search</label>
+        <input id="treeSearch" type="search" placeholder="파일명 또는 함수명 검색">
+      </div>
+      <div class="tree-actions">
+        <button type="button" id="expandAll">전체 펼치기</button>
+        <button type="button" id="collapseAll">전체 접기</button>
+      </div>
+
+      <nav class="tree" id="treeRoot">
+        <details open data-search="src package root compare common system1 system2 system3">
+          <summary><span class="badge entry">root</span> src</summary>
+          <div class="tree-group">
+            <a href="#compare" data-search="compare.py load_reports to_markdown main comparison report"><span class="badge file">file</span> compare.py</a>
+
+            <details open data-search="common config data hscode evaluation runner llm shared">
+              <summary><span class="badge entry">pkg</span> common</summary>
+              <div class="tree-group">
+                <a href="#config" data-search="config.py DATA_FILES LLM_MODEL RAG_TOP_K EVAL_LIMIT paths model evaluation"><span class="badge file">file</span> config.py</a>
+                <a href="#data" data-search="data.py Record load_records split_records get_split text text_with_reason"><span class="badge file">file</span> data.py</a>
+                <a href="#hscode" data-search="hscode.py normalize extract_code parse_llm_codes level pretty match_level"><span class="badge file">file</span> hscode.py</a>
+                <a href="#evaluation" data-search="evaluation.py Prediction evaluate save_report print_report accuracy topk"><span class="badge file">file</span> evaluation.py</a>
+                <a href="#runner" data-search="runner.py run shared evaluation loop"><span class="badge file">file</span> runner.py</a>
+                <a href="#llm" data-search="llm.py chat ensure_model ollama"><span class="badge file">file</span> llm.py</a>
+              </div>
+            </details>
+
+            <details open data-search="system1_llm pure local llm predictor run_eval">
+              <summary><span class="badge entry">pkg</span> system1_llm</summary>
+              <div class="tree-group">
+                <a href="#system1-predictor" data-search="predictor.py build_user_prompt predict local llm"><span class="badge file">file</span> predictor.py</a>
+                <a href="#system1-run" data-search="run_eval.py system1 run"><span class="badge file">file</span> run_eval.py</a>
+              </div>
+            </details>
+
+            <details open data-search="system2_rag faiss vector rag knn index predictor run_eval">
+              <summary><span class="badge entry">pkg</span> system2_rag</summary>
+              <div class="tree-group">
+                <a href="#rag-index" data-search="index.py get_embedder embed NeighborMeta build load search faiss"><span class="badge file">file</span> index.py</a>
+                <a href="#rag-predictor" data-search="predictor.py _format_neighbors predict_knn predict rag llm"><span class="badge file">file</span> predictor.py</a>
+                <a href="#rag-run" data-search="run_eval.py knn system2"><span class="badge file">file</span> run_eval.py</a>
+              </div>
+            </details>
+
+            <details open data-search="system3_graph networkx graph spreading activation predictor run_eval">
+              <summary><span class="badge entry">pkg</span> system3_graph</summary>
+              <div class="tree-group">
+                <a href="#graph-build" data-search="graph.py tokenize build load networkx idf"><span class="badge file">file</span> graph.py</a>
+                <a href="#graph-predictor" data-search="predictor.py _score_codes predict spreading activation"><span class="badge file">file</span> predictor.py</a>
+                <a href="#graph-run" data-search="run_eval.py system3"><span class="badge file">file</span> run_eval.py</a>
+              </div>
+            </details>
+          </div>
+        </details>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section class="intro">
+        <h2>HSK 10자리 품목분류 실험 코드 구조</h2>
+        <p>세 가지 예측 방식이 같은 데이터 분할, 같은 평가 지표, 같은 결과 저장 구조를 공유하도록 구성된 작은 연구용 코드베이스입니다.</p>
+      </section>
+
+      <section class="section" id="flow">
+        <div class="section-title">
+          <h3>실행 흐름</h3>
+          <p>원천 JSONL에서 공통 split을 만들고, 세 시스템이 같은 test set을 예측한 뒤 결과를 비교표로 합칩니다.</p>
+        </div>
+        <div class="flow-card">
+          <svg viewBox="0 0 1120 430" role="img" aria-label="HSK 코드베이스 실행 흐름도">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="#697386"></path>
+              </marker>
+              <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#1c2430" flood-opacity="0.14"></feDropShadow>
+              </filter>
+            </defs>
+
+            <g class="flow-node" tabindex="0" role="button" data-label="data/85" data-targets="data" aria-label="data/85 관련 파일 표시">
+              <rect x="20" y="160" width="160" height="74" rx="8" fill="#ffffff" stroke="#d9ddd8" filter="url(#soft)"></rect>
+              <text x="100" y="190" text-anchor="middle" font-size="16" font-weight="700" fill="#1c2430">data/85</text>
+              <text x="100" y="214" text-anchor="middle" font-size="13" fill="#697386">JSONL records</text>
+            </g>
+
+            <g class="flow-node" tabindex="0" role="button" data-label="common/data.py" data-targets="data config hscode" aria-label="common/data.py 관련 파일 표시">
+              <rect x="240" y="160" width="170" height="74" rx="8" fill="#ffffff" stroke="#d9ddd8" filter="url(#soft)"></rect>
+              <text x="325" y="190" text-anchor="middle" font-size="16" font-weight="700" fill="#1c2430">common/data.py</text>
+              <text x="325" y="214" text-anchor="middle" font-size="13" fill="#697386">load + split</text>
+            </g>
+
+            <g class="flow-node" tabindex="0" role="button" data-label="System 1" data-targets="system1-predictor system1-run llm hscode runner evaluation" aria-label="System 1 관련 파일 표시">
+              <rect x="470" y="42" width="170" height="84" rx="8" fill="#e7eef5" stroke="#b9cfe1" filter="url(#soft)"></rect>
+              <text x="555" y="76" text-anchor="middle" font-size="15" font-weight="700" fill="#1c2430">System 1</text>
+              <text x="555" y="100" text-anchor="middle" font-size="13" fill="#264b68">Local LLM</text>
+            </g>
+
+            <g class="flow-node" tabindex="0" role="button" data-label="System 2" data-targets="rag-index rag-predictor rag-run llm hscode runner evaluation" aria-label="System 2 관련 파일 표시">
+              <rect x="470" y="160" width="170" height="84" rx="8" fill="#e4f1ee" stroke="#b9d9d0" filter="url(#soft)"></rect>
+              <text x="555" y="194" text-anchor="middle" font-size="15" font-weight="700" fill="#1c2430">System 2</text>
+              <text x="555" y="218" text-anchor="middle" font-size="13" fill="#1f6655">Vector RAG / kNN</text>
+            </g>
+
+            <g class="flow-node" tabindex="0" role="button" data-label="System 3" data-targets="graph-build graph-predictor graph-run hscode runner evaluation" aria-label="System 3 관련 파일 표시">
+              <rect x="470" y="278" width="170" height="84" rx="8" fill="#f5ead8" stroke="#dfc69e" filter="url(#soft)"></rect>
+              <text x="555" y="312" text-anchor="middle" font-size="15" font-weight="700" fill="#1c2430">System 3</text>
+              <text x="555" y="336" text-anchor="middle" font-size="13" fill="#72430f">Graph activation</text>
+            </g>
+
+            <g class="flow-node" tabindex="0" role="button" data-label="evaluation.py" data-targets="evaluation runner hscode" aria-label="evaluation.py 관련 파일 표시">
+              <rect x="720" y="160" width="180" height="74" rx="8" fill="#ffffff" stroke="#d9ddd8" filter="url(#soft)"></rect>
+              <text x="810" y="190" text-anchor="middle" font-size="16" font-weight="700" fill="#1c2430">evaluation.py</text>
+              <text x="810" y="214" text-anchor="middle" font-size="13" fill="#697386">accuracy + top-k</text>
+            </g>
+
+            <g class="flow-node" tabindex="0" role="button" data-label="compare.py" data-targets="compare" aria-label="compare.py 관련 파일 표시">
+              <rect x="960" y="160" width="140" height="74" rx="8" fill="#f4e3e8" stroke="#ddb6c0" filter="url(#soft)"></rect>
+              <text x="1030" y="190" text-anchor="middle" font-size="16" font-weight="700" fill="#1c2430">compare.py</text>
+              <text x="1030" y="214" text-anchor="middle" font-size="13" fill="#7a3244">comparison.md</text>
+            </g>
+
+            <path d="M180 197 H232" stroke="#697386" stroke-width="2" marker-end="url(#arrow)" fill="none"></path>
+            <path d="M410 197 C445 197 435 84 462 84" stroke="#697386" stroke-width="2" marker-end="url(#arrow)" fill="none"></path>
+            <path d="M410 197 H462" stroke="#697386" stroke-width="2" marker-end="url(#arrow)" fill="none"></path>
+            <path d="M410 197 C445 197 435 320 462 320" stroke="#697386" stroke-width="2" marker-end="url(#arrow)" fill="none"></path>
+            <path d="M640 84 C690 84 672 197 712 197" stroke="#697386" stroke-width="2" marker-end="url(#arrow)" fill="none"></path>
+            <path d="M640 202 H712" stroke="#697386" stroke-width="2" marker-end="url(#arrow)" fill="none"></path>
+            <path d="M640 320 C690 320 672 197 712 197" stroke="#697386" stroke-width="2" marker-end="url(#arrow)" fill="none"></path>
+            <path d="M900 197 H952" stroke="#697386" stroke-width="2" marker-end="url(#arrow)" fill="none"></path>
+          </svg>
+          <p class="flow-caption"><strong>설명 흐름:</strong> data -> systems -> evaluation -> comparison 순서로 말하면 전체 구조가 자연스럽게 이어집니다.</p>
+        </div>
+      </section>
+
+      <section class="section" id="modules">
+        <div class="section-title">
+          <h3>파일별 역할과 주요 함수</h3>
+          <p>왼쪽 트리에서 파일을 선택하거나 위 실행 흐름의 항목을 선택하면 관련 파일 설명만 표시됩니다.</p>
+        </div>
+
+        <div class="selection-summary" id="selectionSummary">
+          <span><strong>선택 대기 중</strong> 트리의 파일명 또는 실행 흐름 항목을 선택하세요.</span>
+        </div>
+
+        <div class="module-grid">
+          <article class="module-card" id="system1-predictor">
+            <header><h4><code>src/system1_llm/predictor.py</code></h4><span class="badge file">file</span></header>
+            <p>검색 없이 물품 정보만으로 LLM이 10자리 HSK 코드를 예측합니다.</p>
+            <div class="talk-track">System 1은 외부 사례 검색 없이 LLM 자체 지식으로 HSK 코드를 직접 고르는 기준선입니다.</div>
+            <ul class="function-list">
+              <li><b>build_user_prompt()</b><span><code>Record</code>를 LLM 입력 프롬프트로 변환합니다.</span></li>
+              <li><b>predict()</b><span>LLM 호출 결과를 <code>Prediction</code> 객체로 반환합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="system1-run">
+            <header><h4><code>src/system1_llm/run_eval.py</code></h4><span class="badge entry">entry</span></header>
+            <p>System 1 평가 진입점입니다.</p>
+            <div class="talk-track">이 파일은 System 1 predictor를 공통 runner에 연결하는 가장 얇은 실행 진입점입니다.</div>
+            <ul class="function-list">
+              <li><b>python -m src.system1_llm.run_eval</b><span>LLM 단독 시스템을 평가합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="rag-index">
+            <header><h4><code>src/system2_rag/index.py</code></h4><span class="badge file">file</span></header>
+            <p>train split 텍스트를 embedding으로 바꾸고 FAISS 벡터 인덱스를 생성합니다.</p>
+            <div class="talk-track">이 파일은 train 데이터만 벡터화해서, 평가 시 유사한 과거 분류 사례를 검색할 수 있게 준비합니다.</div>
+            <ul class="function-list">
+              <li><b>get_embedder()</b><span>sentence-transformers 모델을 필요할 때 한 번 로드합니다.</span></li>
+              <li><b>embed()</b><span>텍스트 목록을 정규화된 float32 embedding으로 변환합니다.</span></li>
+              <li><b>NeighborMeta</b><span>검색 결과의 문서 ID, HSK 코드, 물품 설명 metadata입니다.</span></li>
+              <li><b>build()</b><span>FAISS index와 metadata cache를 생성합니다.</span></li>
+              <li><b>load()</b><span>저장된 index를 읽거나 없으면 새로 만듭니다.</span></li>
+              <li><b>search()</b><span>query text와 가까운 training 사례를 반환합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="rag-predictor">
+            <header><h4><code>src/system2_rag/predictor.py</code></h4><span class="badge file">file</span></header>
+            <p>RAG+LLM 예측과 순수 vector kNN baseline을 함께 제공합니다.</p>
+            <div class="talk-track">System 2는 유사 사례를 먼저 찾고, 그 근거를 LLM 판단이나 kNN 투표에 활용하는 검색 기반 방식입니다.</div>
+            <ul class="function-list">
+              <li><b>_format_neighbors()</b><span>검색된 유사 사례를 LLM 프롬프트용 근거 텍스트로 만듭니다.</span></li>
+              <li><b>predict_knn()</b><span>유사도 가중 투표로 코드 후보를 순위화합니다.</span></li>
+              <li><b>predict()</b><span>유사 사례를 근거로 LLM이 최종 HSK 코드를 고르게 합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="rag-run">
+            <header><h4><code>src/system2_rag/run_eval.py</code></h4><span class="badge entry">entry</span></header>
+            <p>System 2 평가 진입점입니다.</p>
+            <div class="talk-track">이 파일은 RAG+LLM 평가와 kNN baseline 평가를 명령 인자로 나누어 실행합니다.</div>
+            <ul class="function-list">
+              <li><b>python -m src.system2_rag.run_eval</b><span>RAG + LLM 시스템을 평가합니다.</span></li>
+              <li><b>python -m src.system2_rag.run_eval knn</b><span>순수 vector kNN baseline을 평가합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="graph-build">
+            <header><h4><code>src/system3_graph/graph.py</code></h4><span class="badge file">file</span></header>
+            <p>term, case, code, HS hierarchy를 연결한 NetworkX 그래프를 만듭니다.</p>
+            <div class="talk-track">이 파일은 물품 단어, 과거 사례, HSK 코드, HS 계층을 하나의 그래프로 묶어 구조적 근거를 만듭니다.</div>
+            <ul class="function-list">
+              <li><b>tokenize()</b><span>물품 텍스트를 검색용 token과 한국어 2-gram shingle로 분리합니다.</span></li>
+              <li><b>build()</b><span>train records로 그래프와 IDF 정보를 생성하고 저장합니다.</span></li>
+              <li><b>load()</b><span>저장된 graph cache를 읽거나 없으면 새로 만듭니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="graph-predictor">
+            <header><h4><code>src/system3_graph/predictor.py</code></h4><span class="badge file">file</span></header>
+            <p>query term에서 case와 code로 activation을 전파해 후보 코드를 순위화합니다.</p>
+            <div class="talk-track">System 3은 LLM 없이 query 단어에서 관련 사례와 코드로 점수를 전파해 후보를 고르는 구조 기반 방식입니다.</div>
+            <ul class="function-list">
+              <li><b>_score_codes()</b><span>term, case, hierarchy evidence를 합쳐 코드별 점수를 계산합니다.</span></li>
+              <li><b>predict()</b><span>점수순 후보를 <code>Prediction</code> 객체로 반환합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="graph-run">
+            <header><h4><code>src/system3_graph/run_eval.py</code></h4><span class="badge entry">entry</span></header>
+            <p>System 3 평가 진입점입니다.</p>
+            <div class="talk-track">이 파일은 그래프 cache를 준비한 뒤 System 3 predictor를 공통 평가 루프에 연결합니다.</div>
+            <ul class="function-list">
+              <li><b>python -m src.system3_graph.run_eval</b><span>그래프 기반 시스템을 평가합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="compare">
+            <header><h4><code>src/compare.py</code></h4><span class="badge file">file</span></header>
+            <p>각 시스템 report를 읽어 논문이나 보고서에 넣기 좋은 비교표를 생성합니다.</p>
+            <div class="talk-track">이 파일은 각 시스템의 평가 결과를 모아 최종 비교표와 JSON 요약으로 정리하는 마지막 단계입니다.</div>
+            <ul class="function-list">
+              <li><b>load_reports()</b><span><code>results/*_report.json</code> 파일을 읽어 시스템별 report를 모읍니다.</span></li>
+              <li><b>to_markdown()</b><span>정확도와 latency를 Markdown 표로 변환합니다.</span></li>
+              <li><b>main()</b><span><code>comparison.json</code>과 <code>comparison.md</code>를 생성합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="config">
+            <header><h4><code>src/common/config.py</code></h4><span class="badge file">file</span></header>
+            <p>경로, 모델명, RAG 검색 수, 평가 제한 등 전역 설정을 관리합니다.</p>
+            <div class="talk-track">이 파일은 실험에 필요한 경로, 모델, 평가 조건을 한 곳에서 조정하는 설정 중심입니다.</div>
+            <ul class="function-list">
+              <li><b>DATA_FILES</b><span>입력 JSONL 파일 목록입니다.</span></li>
+              <li><b>LLM_MODEL</b><span>Ollama에서 사용할 기본 LLM 모델명입니다.</span></li>
+              <li><b>RAG_TOP_K</b><span>RAG와 kNN에서 검색할 유사 사례 수입니다.</span></li>
+              <li><b>EVAL_LIMIT</b><span>평가 대상 test item 수를 제한합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="data">
+            <header><h4><code>src/common/data.py</code></h4><span class="badge file">file</span></header>
+            <p>원천 JSONL을 읽고 모든 시스템이 공유하는 train/test split을 만듭니다.</p>
+            <div class="talk-track">이 파일은 원천 데이터를 읽고, 세 시스템이 같은 기준으로 평가되도록 공통 데이터 분할을 보장합니다.</div>
+            <ul class="function-list">
+              <li><b>Record</b><span>물품명, 설명, 결정사유, 정답 HSK 코드를 담는 데이터 단위입니다.</span></li>
+              <li><b>load_records()</b><span>유효한 10자리 단일 HSK 코드가 있는 레코드만 읽습니다.</span></li>
+              <li><b>split_records()</b><span>코드별 빈도를 고려해 train/test를 안정적으로 분리합니다.</span></li>
+              <li><b>get_split()</b><span><code>artifacts/split.json</code> 캐시를 사용해 같은 split을 재사용합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="hscode">
+            <header><h4><code>src/common/hscode.py</code></h4><span class="badge file">file</span></header>
+            <p>HSK 코드 정규화, 표시, 계층 비교, LLM 응답 파싱을 담당합니다.</p>
+            <div class="talk-track">이 파일은 HSK 코드를 내부 비교용 형식으로 맞추고, 예측 결과를 계층별로 비교할 수 있게 해줍니다.</div>
+            <ul class="function-list">
+              <li><b>normalize()</b><span>코드에서 숫자만 남긴 내부 비교용 문자열을 만듭니다.</span></li>
+              <li><b>extract_code()</b><span>자유 텍스트에서 첫 번째 10자리 HSK 코드를 추출합니다.</span></li>
+              <li><b>parse_llm_codes()</b><span>LLM JSON 응답에서 대표 코드, 대안 코드, reasoning을 추출합니다.</span></li>
+              <li><b>level()</b><span>chapter, heading, subheading, national 단위 코드를 반환합니다.</span></li>
+              <li><b>pretty()</b><span><code>8536909010</code>을 <code>8536.90-9010</code> 형식으로 바꿉니다.</span></li>
+              <li><b>match_level()</b><span>예측 코드와 정답 코드가 특정 계층에서 일치하는지 비교합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="evaluation">
+            <header><h4><code>src/common/evaluation.py</code></h4><span class="badge file">file</span></header>
+            <p>예측 결과를 계층 정확도와 top-k 정확도로 평가하고 결과 파일을 저장합니다.</p>
+            <div class="talk-track">이 파일은 각 시스템의 예측 결과를 같은 지표로 계산해서 비교 가능한 report로 바꿉니다.</div>
+            <ul class="function-list">
+              <li><b>Prediction</b><span>문서 ID, 정답, ranked 후보, latency, 부가 정보를 담습니다.</span></li>
+              <li><b>evaluate()</b><span>chapter부터 national까지 계층별 top-1 정확도와 top-k exact를 계산합니다.</span></li>
+              <li><b>save_report()</b><span>시스템별 report JSON과 prediction JSONL을 저장합니다.</span></li>
+              <li><b>print_report()</b><span>콘솔에서 볼 수 있는 요약 평가 결과를 출력합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="runner">
+            <header><h4><code>src/common/runner.py</code></h4><span class="badge file">file</span></header>
+            <p>각 시스템의 <code>run_eval.py</code>가 공유하는 평가 실행 루프입니다.</p>
+            <div class="talk-track">이 파일은 test set을 순회하면서 predictor를 호출하고, 평가와 저장까지 이어주는 공통 실행 루프입니다.</div>
+            <ul class="function-list">
+              <li><b>run()</b><span>test set 순회, predictor 호출, 예외 기록, 평가, 저장, 출력까지 수행합니다.</span></li>
+            </ul>
+          </article>
+
+          <article class="module-card" id="llm">
+            <header><h4><code>src/common/llm.py</code></h4><span class="badge file">file</span></header>
+            <p>Ollama chat API를 얇게 감싸 System 1과 RAG 시스템에서 재사용합니다.</p>
+            <div class="talk-track">이 파일은 Ollama 호출 방식을 한 곳에 모아 LLM을 쓰는 시스템들이 같은 인터페이스를 쓰게 합니다.</div>
+            <ul class="function-list">
+              <li><b>chat()</b><span>system prompt와 user prompt를 보내고 assistant 응답 텍스트를 반환합니다.</span></li>
+              <li><b>ensure_model()</b><span>지정한 Ollama 모델이 로컬에 있는지 확인합니다.</span></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="notes">
+        <div class="section-title">
+          <h3>코드 설명 시 강조할 점</h3>
+          <p>이 프로젝트의 핵심은 모델 자체보다, 세 시스템을 같은 조건에서 비교하도록 묶은 실험 구조입니다.</p>
+        </div>
+        <div class="note">
+          모든 시스템은 <code>get_split()</code>이 만든 같은 held-out test set을 사용합니다. RAG와 Graph는 train split만 인덱싱해야 하며, test label이 인덱스에 들어가면 비교 실험의 의미가 깨집니다.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const treeRoot = document.querySelector("#treeRoot");
+    const treeSearch = document.querySelector("#treeSearch");
+    const expandAll = document.querySelector("#expandAll");
+    const collapseAll = document.querySelector("#collapseAll");
+    const moduleCards = Array.from(document.querySelectorAll(".module-card"));
+    const treeLinks = Array.from(treeRoot.querySelectorAll("a[href^='#']"));
+    const flowNodes = Array.from(document.querySelectorAll(".flow-node"));
+    const selectionSummary = document.querySelector("#selectionSummary");
+
+    function allDetails() {
+      return Array.from(treeRoot.querySelectorAll("details"));
+    }
+
+    function searchableItems() {
+      return Array.from(treeRoot.querySelectorAll("a, details"));
+    }
+
+    function targetFromLink(link) {
+      return link.getAttribute("href").replace("#", "");
+    }
+
+    function openTreeParents(link) {
+      let parent = link.parentElement;
+      while (parent) {
+        if (parent.tagName === "DETAILS") {
+          parent.open = true;
+        }
+        parent = parent.parentElement;
+      }
+    }
+
+    function setSelection(targets, label, shouldScroll = true, activeFlowNode = null) {
+      const targetSet = new Set(targets);
+
+      moduleCards.forEach((card) => {
+        card.classList.toggle("is-visible", targetSet.has(card.id));
+      });
+
+      treeLinks.forEach((link) => {
+        const isSelected = targetSet.has(targetFromLink(link));
+        link.classList.toggle("is-selected", isSelected);
+        if (isSelected) {
+          link.setAttribute("aria-current", "true");
+          openTreeParents(link);
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+
+      flowNodes.forEach((node) => {
+        node.classList.toggle("is-selected", node === activeFlowNode);
+      });
+
+      selectionSummary.innerHTML = `<span><strong>${label}</strong> 관련 파일 ${targetSet.size}개를 표시 중입니다.</span>`;
+
+      if (shouldScroll) {
+        document.querySelector("#modules").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    expandAll.addEventListener("click", () => {
+      allDetails().forEach((item) => item.open = true);
+    });
+
+    collapseAll.addEventListener("click", () => {
+      allDetails().forEach((item, index) => item.open = index === 0);
+    });
+
+    treeSearch.addEventListener("input", () => {
+      const term = treeSearch.value.trim().toLowerCase();
+      searchableItems().forEach((item) => item.classList.remove("is-hidden"));
+      if (!term) {
+        return;
+      }
+
+      allDetails().forEach((item) => item.open = true);
+      searchableItems().forEach((item) => {
+        const haystack = `${item.textContent} ${item.dataset.search || ""}`.toLowerCase();
+        const isMatch = haystack.includes(term);
+        const hasMatchingChild = Array.from(item.querySelectorAll("a, details")).some((child) => {
+          const childHaystack = `${child.textContent} ${child.dataset.search || ""}`.toLowerCase();
+          return childHaystack.includes(term);
+        });
+        if (!isMatch && !hasMatchingChild) {
+          item.classList.add("is-hidden");
+        }
+      });
+    });
+
+    treeLinks.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        const target = targetFromLink(link);
+        setSelection([target], link.textContent.trim());
+      });
+    });
+
+    flowNodes.forEach((node) => {
+      const selectFlowNode = () => {
+        const targets = node.dataset.targets.split(" ").filter(Boolean);
+        setSelection(targets, node.dataset.label || node.textContent.trim(), true, node);
+      };
+
+      node.addEventListener("click", selectFlowNode);
+      node.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          selectFlowNode();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
